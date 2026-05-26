@@ -26,7 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(authConfig.providers as []),
     Resend({
       apiKey: process.env.RESEND_API_KEY!,
-      from: "noreply@yourdomain.com",
+      from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
     }),
     Credentials({
       credentials: {
