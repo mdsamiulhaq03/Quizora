@@ -3,8 +3,7 @@
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import PDF from "@/lib/models/PDF";
-import { inngest } from "@/inngest/client";
-import { groqRatelimit } from "@/lib/ratelimit";
+import { processPdfJob } from "@/lib/processPdfJob";
 import type { Difficulty, QuestionType } from "@/lib/types";
 
 export async function regenerateQuiz(
@@ -17,13 +16,6 @@ export async function regenerateQuiz(
   if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
   const userId = session.user.id;
-  const limit = await groqRatelimit.limit(userId);
-  if (!limit.success) {
-    return {
-      success: false,
-      error: "Daily AI usage limit reached. Try again tomorrow.",
-    };
-  }
 
   await dbConnect();
 
@@ -31,18 +23,18 @@ export async function regenerateQuiz(
   if (!pdf) return { success: false, error: "PDF not found" };
   if (pdf.userId !== userId) return { success: false, error: "Forbidden" };
 
-  await inngest.send({
-    name: "pdf/process",
-    data: {
+  try {
+    const quizId = await processPdfJob({
       pdfId,
       userId,
       guestIp: null,
-      userEmail: session.user.email,
+      userEmail: session.user.email ?? null,
       difficulty,
       questionCount,
       questionTypes,
-    },
-  });
-
-  return { success: true };
+    });
+    return { success: true, quizId };
+  } catch {
+    return { success: false, error: "Failed to generate quiz. Please try again." };
+  }
 }
