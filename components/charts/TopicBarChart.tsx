@@ -40,7 +40,7 @@ export default function TopicBarChart({ data }: Props) {
               <YAxis
                 dataKey="topic"
                 type="category"
-                tick={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", fill: "var(--fg-muted)", textTransform: "uppercase" }}
+                tick={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", fill: "var(--fg-muted)" }}
                 width={90}
               />
               <Tooltip

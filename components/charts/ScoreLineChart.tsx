@@ -35,7 +35,7 @@ export default function ScoreLineChart({ data }: Props) {
               <CartesianGrid strokeDasharray="2 4" stroke="var(--border-faint)" />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", textTransform: "uppercase", fill: "var(--fg-muted)" }}
+                tick={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", fill: "var(--fg-muted)" }}
               />
               <YAxis
                 domain={[0, 100]}
