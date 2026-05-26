@@ -5,6 +5,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { auth } from "@/lib/auth";
 import { Analytics } from "@vercel/analytics/next";
 
 const geist = Geist({
@@ -30,11 +31,13 @@ export const metadata: Metadata = {
     "Upload PDFs and generate adaptive quizzes powered by Groq AI. Track your progress with spaced repetition.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning>
       {/* Anti-FOUC: set theme before React hydrates */}
@@ -48,7 +51,7 @@ export default function RootLayout({
       <body
         className={`${geist.variable} ${archivo.variable} ${jetbrains.variable} font-sans antialiased bg-paper text-ink`}
       >
-        <SessionProvider>
+        <SessionProvider session={session}>
           <ThemeProvider>
             {children}
           </ThemeProvider>

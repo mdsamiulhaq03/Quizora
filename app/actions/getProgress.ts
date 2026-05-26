@@ -6,6 +6,7 @@ import Attempt from "@/lib/models/Attempt";
 import WeakQuestion from "@/lib/models/WeakQuestion";
 import User from "@/lib/models/User";
 import redis, { CACHE_KEYS, CACHE_TTL } from "@/lib/redis";
+import { ATTEMPTS_HISTORY_LIMIT } from "@/lib/config";
 import type { ProgressStats } from "@/lib/types";
 
 export async function getProgress(): Promise<ProgressStats | null> {
@@ -20,13 +21,20 @@ export async function getProgress(): Promise<ProgressStats | null> {
 
   await dbConnect();
 
-  const [attempts, weakDue, user] = await Promise.all([
+  const [attempts, weakDue, user, topicGroups] = await Promise.all([
     Attempt.find({ userId, completedAt: { $exists: true } })
       .populate("quizId", "title")
       .sort({ completedAt: -1 })
+      .limit(ATTEMPTS_HISTORY_LIMIT)
       .lean(),
     WeakQuestion.countDocuments({ userId, nextReviewAt: { $lte: new Date() } }),
     User.findOne({ email: session.user.email }).lean(),
+    WeakQuestion.aggregate<{ _id: string; wrongCount: number }>([
+      { $match: { userId } },
+      { $group: { _id: "$topic", wrongCount: { $sum: "$timesWrong" } } },
+      { $sort: { wrongCount: -1 } },
+      { $limit: 10 },
+    ]),
   ]);
 
   const totalQuizzes = attempts.length;
@@ -54,20 +62,10 @@ export async function getProgress(): Promise<ProgressStats | null> {
       score: Math.round((a.score / a.total) * 100),
     }));
 
-  const topicMap: Record<string, number> = {};
-  for (const attempt of attempts) {
-    for (const ans of attempt.answers) {
-      if (!ans.isCorrect) {
-        // We'd need to join with quiz questions for topic — simplified here
-        topicMap["General"] = (topicMap["General"] || 0) + 1;
-      }
-    }
-  }
-
-  const topicWeakness = Object.entries(topicMap)
-    .map(([topic, wrongCount]) => ({ topic, wrongCount }))
-    .sort((a, b) => b.wrongCount - a.wrongCount)
-    .slice(0, 10);
+  const topicWeakness = topicGroups.map((g) => ({
+    topic: g._id || "General",
+    wrongCount: g.wrongCount,
+  }));
 
   const recentQuizzes = attempts.slice(0, 10).map((a) => ({
     id: a._id.toString(),

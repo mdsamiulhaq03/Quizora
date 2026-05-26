@@ -1,13 +1,51 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { signUpWithEmail } from "@/app/actions/signUpWithEmail";
 
 export function EmailRegisterForm() {
-  const [error, action, isPending] = useActionState(signUpWithEmail, null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsPending(true);
+    setError(null);
+
+    const fd = new FormData(e.currentTarget);
+    const name = fd.get("name") as string;
+    const email = fd.get("email") as string;
+    const password = fd.get("password") as string;
+
+    const result = await signUpWithEmail(name, email, password);
+
+    if ("error" in result) {
+      setError(result.error);
+      setIsPending(false);
+      return;
+    }
+
+    // Account created — now sign in client-side so the session updates instantly
+    const signInResult = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (signInResult?.error) {
+      setError("Account created but sign-in failed. Please log in manually.");
+      setIsPending(false);
+    } else {
+      router.push("/dashboard");
+      router.refresh();
+    }
+  };
 
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mb-1">
           Name
@@ -52,7 +90,7 @@ export function EmailRegisterForm() {
 
       {error && (
         <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-red-500">
-          ⚠ {error}
+          {error}
         </p>
       )}
 

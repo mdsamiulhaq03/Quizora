@@ -7,9 +7,6 @@ export default function GuestBanner() {
         <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-hazard mb-0.5">
           ▲ GUEST SESSION ACTIVE
         </p>
-        <p className="font-terminal text-[0.65rem] uppercase tracking-wide text-ink-muted">
-          1 FREE UPLOAD REMAINING · SIGN UP FOR 3/DAY + FULL FEATURES
-        </p>
       </div>
       <Link
         href="/register"

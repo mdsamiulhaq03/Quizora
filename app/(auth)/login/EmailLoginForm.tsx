@@ -1,13 +1,37 @@
 "use client";
 
-import { useActionState } from "react";
-import { signInWithEmail } from "@/app/actions/signInWithEmail";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export function EmailLoginForm() {
-  const [error, action, isPending] = useActionState(signInWithEmail, null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsPending(true);
+    setError(null);
+
+    const fd = new FormData(e.currentTarget);
+    const result = await signIn("credentials", {
+      email: fd.get("email") as string,
+      password: fd.get("password") as string,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError("Invalid email or password.");
+      setIsPending(false);
+    } else {
+      router.push("/dashboard");
+      router.refresh();
+    }
+  };
 
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mb-1">
           Email
@@ -38,7 +62,7 @@ export function EmailLoginForm() {
 
       {error && (
         <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-red-500">
-          ⚠ {error}
+          {error}
         </p>
       )}
 

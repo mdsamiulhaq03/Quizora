@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 interface Props {
   durationSeconds: number;
@@ -24,7 +25,8 @@ export default function TimerBar({ durationSeconds, onExpire, paused }: Props) {
   }, [paused, remaining, onExpire]);
 
   const pct = (remaining / durationSeconds) * 100;
-  const barColor = pct > 50 ? "bg-green-500" : pct > 20 ? "bg-yellow-500" : "bg-hazard";
+  const isLow = pct <= 20;
+  const barColor = pct > 50 ? "#4AF626" : pct > 20 ? "#F5A623" : "#E61919";
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
 
@@ -32,16 +34,21 @@ export default function TimerBar({ durationSeconds, onExpire, paused }: Props) {
     <div className="border border-rule bg-plate px-4 py-2">
       <div className="flex justify-between mb-1.5">
         <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">
-          ELAPSED / TIMER
+          TIMER
         </span>
-        <span className={`font-terminal text-xs tabular-nums font-bold ${pct <= 20 ? "text-hazard" : "text-ink"}`}>
+        <motion.span
+          animate={isLow ? { opacity: [1, 0.4, 1] } : { opacity: 1 }}
+          transition={isLow ? { repeat: Infinity, duration: 0.9, ease: "easeInOut" } : {}}
+          className={`font-terminal text-xs tabular-nums font-bold ${isLow ? "text-hazard" : "text-ink"}`}
+        >
           {minutes}:{seconds.toString().padStart(2, "0")}
-        </span>
+        </motion.span>
       </div>
-      <div className="w-full bg-plate-alt h-1">
-        <div
-          className={`${barColor} h-1 transition-all duration-1000`}
-          style={{ width: `${pct}%` }}
+      <div className="w-full bg-plate-alt h-1 overflow-hidden">
+        <motion.div
+          className="h-1 origin-left"
+          animate={{ width: `${pct}%`, backgroundColor: barColor }}
+          transition={{ duration: 0.9, ease: "linear" }}
         />
       </div>
     </div>

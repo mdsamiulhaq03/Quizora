@@ -9,6 +9,7 @@ import User from "@/lib/models/User";
 import redis, { CACHE_KEYS } from "@/lib/redis";
 import { resetSRS, getNextReviewDate } from "@/lib/srs";
 import { headers } from "next/headers";
+import { STREAK_FREEZE_EARN_INTERVAL } from "@/lib/config";
 import type { AnswerRecord } from "@/lib/types";
 
 interface SubmitAttemptResult {
@@ -183,16 +184,29 @@ async function updateStreak(userId: string) {
   );
 
   if (diffDays === 0) return; // already studied today
+
   if (diffDays === 1) {
+    const newStreak = (user.streak || 0) + 1;
+    // Earn a new freeze at every STREAK_FREEZE_EARN_INTERVAL-day milestone
+    const earnedFreeze = newStreak % STREAK_FREEZE_EARN_INTERVAL === 0;
     await User.findByIdAndUpdate(userId, {
-      $inc: { streak: 1 },
+      streak: newStreak,
       lastStudiedAt: now,
+      ...(earnedFreeze ? { streakFreezeUsed: false } : {}),
+    });
+  } else if (!user.streakFreezeUsed) {
+    // Freeze auto-activates: protect the streak, consume the freeze
+    const newStreak = (user.streak || 0) + 1;
+    await User.findByIdAndUpdate(userId, {
+      streak: newStreak,
+      lastStudiedAt: now,
+      streakFreezeUsed: true,
     });
   } else {
+    // No freeze available — streak resets
     await User.findByIdAndUpdate(userId, {
       streak: 1,
       lastStudiedAt: now,
-      streakFreezeUsed: false,
     });
   }
 }

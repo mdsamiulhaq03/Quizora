@@ -1,34 +1,27 @@
 "use server";
 
+import { createHash } from "crypto";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import PDF from "@/lib/models/PDF";
-import { inngest } from "@/inngest/client";
-import {
-  checkGuestUploadLimit,
-  setGuestUploadUsed,
-  uploadRatelimit,
-  groqRatelimit,
-} from "@/lib/ratelimit";
+import Quiz from "@/lib/models/Quiz";
+import { processPdfJob } from "@/lib/processPdfJob";
 import { truncateToWords, countWords } from "@/lib/truncate";
-import { headers } from "next/headers";
+import { uploadRatelimit } from "@/lib/ratelimit";
+import { WORD_LIMIT } from "@/lib/config";
 import type { Difficulty, QuestionType } from "@/lib/types";
 
 interface UploadResult {
   success: boolean;
-  pdfId?: string;
   quizId?: string;
+  duplicate?: boolean;
+  duplicateDate?: string;
   error?: string;
-  resetsAt?: Date;
 }
 
 export async function uploadPdf(formData: FormData): Promise<UploadResult> {
   const session = await auth();
-  const headersList = await headers();
-  const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    headersList.get("x-real-ip") ||
-    "unknown";
 
   const file = formData.get("file") as File;
   const difficulty = (formData.get("difficulty") as Difficulty) || "medium";
@@ -45,47 +38,59 @@ export async function uploadPdf(formData: FormData): Promise<UploadResult> {
 
   const isGuest = !session?.user;
 
-  // Rate limit checks
-  if (isGuest) {
-    const alreadyUsed = await checkGuestUploadLimit(ip);
-    if (alreadyUsed) {
-      return {
-        success: false,
-        error:
-          "You've already used your free upload. Sign up for 3 uploads per day, progress tracking, spaced repetition, and more.",
-      };
-    }
-  } else {
-    const userId = session!.user.id!;
+  // Rate limiting: 3 uploads per 24h per user/IP
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimitKey = isGuest ? `guest:${ip}` : `user:${session!.user.id}`;
+  const { success: rateOk } = await uploadRatelimit.limit(rateLimitKey);
+  if (!rateOk) {
+    return {
+      success: false,
+      error: isGuest
+        ? "Upload limit reached. Sign in for more uploads."
+        : "Upload limit reached (3 per 24 hours). Try again later.",
+    };
+  }
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentHash = createHash("sha256").update(buffer).digest("hex");
 
-    const uploadLimit = await uploadRatelimit.limit(userId);
-    if (!uploadLimit.success) {
-      const resetsAt = new Date(uploadLimit.reset);
-      return {
-        success: false,
-        error: `You've reached your 3 upload limit for today. Resets in ${formatCountdown(resetsAt)}.`,
-        resetsAt,
-      };
-    }
+  await dbConnect();
 
-    const groqLimit = await groqRatelimit.limit(userId);
-    if (!groqLimit.success) {
-      return {
-        success: false,
-        error: "Daily AI usage limit reached. Try again tomorrow.",
-      };
+  const forceNew = formData.get("forceNew") === "true";
+
+  // Check for duplicate — only for logged-in users (guests are ephemeral)
+  if (!isGuest && !forceNew) {
+    const existing = await PDF.findOne({
+      userId: session!.user.id,
+      contentHash,
+      processingStatus: "done",
+    });
+
+    if (existing) {
+      // Find the most recent quiz generated from this PDF
+      const existingQuiz = await Quiz.findOne({ pdfId: existing._id })
+        .sort({ createdAt: -1 })
+        .select("_id createdAt");
+
+      if (existingQuiz) {
+        return {
+          success: true,
+          quizId: existingQuiz._id.toString(),
+          duplicate: true,
+          duplicateDate: (existingQuiz as { createdAt?: Date }).createdAt?.toLocaleDateString() ?? "",
+        };
+      }
+      // PDF exists but no quiz yet — fall through and regenerate
     }
   }
 
-  // Extract PDF text
-  const buffer = Buffer.from(await file.arrayBuffer());
-
+  // Extract text
   let rawText = "";
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse");
-    const data = await pdfParse(buffer);
-    rawText = data.text || "";
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    const result = await parser.getText();
+    rawText = result.text || "";
   } catch {
     return { success: false, error: "Failed to extract text from PDF" };
   }
@@ -95,16 +100,15 @@ export async function uploadPdf(formData: FormData): Promise<UploadResult> {
   }
 
   const wordCount = countWords(rawText);
-  const truncatedText = truncateToWords(rawText, 2000);
-  const wasTruncated = wordCount > 2000;
-
-  await dbConnect();
+  const truncatedText = truncateToWords(rawText, WORD_LIMIT);
+  const wasTruncated = wordCount > WORD_LIMIT;
 
   const pdf = await PDF.create({
     userId: isGuest ? null : session!.user.id,
-    guestIp: isGuest ? ip : null,
+    guestIp: null,
     filename: file.name,
     fileSize: file.size,
+    contentHash,
     rawText,
     truncatedText,
     wordCount,
@@ -112,29 +116,19 @@ export async function uploadPdf(formData: FormData): Promise<UploadResult> {
     processingStatus: "pending",
   });
 
-  if (isGuest) {
-    await setGuestUploadUsed(ip);
-  }
-
-  await inngest.send({
-    name: "pdf/process",
-    data: {
+  try {
+    const quizId = await processPdfJob({
       pdfId: pdf._id.toString(),
-      userId: isGuest ? null : session!.user.id,
-      guestIp: isGuest ? ip : null,
-      userEmail: isGuest ? null : session!.user.email,
+      userId: isGuest ? null : (session!.user.id ?? null),
+      guestIp: null,
+      userEmail: isGuest ? null : session!.user.email ?? null,
       difficulty,
       questionCount,
       questionTypes,
-    },
-  });
-
-  return { success: true, pdfId: pdf._id.toString() };
-}
-
-function formatCountdown(resetsAt: Date): string {
-  const ms = resetsAt.getTime() - Date.now();
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return `${h}h ${m}m`;
+    });
+    return { success: true, quizId };
+  } catch {
+    await PDF.findByIdAndUpdate(pdf._id, { processingStatus: "failed" });
+    return { success: false, error: "Failed to generate quiz. Please try again." };
+  }
 }

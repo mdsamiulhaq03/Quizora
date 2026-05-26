@@ -50,7 +50,6 @@ const QuizSchema = new Schema<IQuiz>(
   { timestamps: true }
 );
 
-QuizSchema.index({ publicSlug: 1 });
 QuizSchema.index({ userId: 1, createdAt: -1 });
 
 const Quiz: Model<IQuiz> =

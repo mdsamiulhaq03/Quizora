@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/shared/Navbar";
 import GuestBanner from "@/components/shared/GuestBanner";
 import TruncationWarning from "@/components/shared/TruncationWarning";
-import RateLimitError from "@/components/shared/RateLimitError";
 import { uploadPdf } from "@/app/actions/uploadPdf";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -24,7 +23,8 @@ export default function UploadPage() {
   const [questionTypes, setQuestionTypes] = useState<QuestionType[]>(["mcq"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resetsAt, setResetsAt] = useState<Date | undefined>();
+  const [duplicateQuizId, setDuplicateQuizId] = useState<string | null>(null);
+  const [duplicateDate, setDuplicateDate] = useState<string | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -39,42 +39,41 @@ export default function UploadPage() {
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, forceNew = false) => {
     e.preventDefault();
     if (!file || questionTypes.length === 0) return;
 
     setLoading(true);
     setError(null);
+    setDuplicateQuizId(null);
+    setDuplicateDate(null);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("difficulty", difficulty);
     formData.append("questionCount", questionCount.toString());
     questionTypes.forEach((t) => formData.append("questionTypes", t));
+    if (forceNew) formData.append("forceNew", "true");
 
     const result = await uploadPdf(formData);
 
     if (!result.success) {
       setError(result.error || "Upload failed");
-      if (result.resetsAt) setResetsAt(new Date(result.resetsAt));
       setLoading(false);
       return;
     }
 
-    if (result.pdfId) {
-      const pollInterval = setInterval(async () => {
-        const res = await fetch(`/api/pdf/${result.pdfId}/status`);
-        const data = await res.json();
-        if (data.status === "done" && data.quizId) {
-          clearInterval(pollInterval);
-          if (!session?.user) sessionStorage.setItem("guestQuizId", data.quizId);
-          router.push(`/quiz/${data.quizId}`);
-        } else if (data.status === "failed") {
-          clearInterval(pollInterval);
-          setError("Generation failed. Please try again.");
-          setLoading(false);
-        }
-      }, 2000);
+    if (result.duplicate && result.quizId) {
+      // Show duplicate options instead of silently redirecting
+      setDuplicateQuizId(result.quizId);
+      setDuplicateDate(result.duplicateDate ?? null);
+      setLoading(false);
+      return;
+    }
+
+    if (result.quizId) {
+      if (!session?.user) sessionStorage.setItem("guestQuizId", result.quizId);
+      router.push(`/quiz/${result.quizId}`);
     }
   };
 
@@ -127,7 +126,42 @@ export default function UploadPage() {
 
             {error && (
               <div className="mb-5">
-                <RateLimitError message={error} resetsAt={resetsAt} />
+                <p className="font-terminal text-[0.65rem] uppercase tracking-widest text-red-500">{error}</p>
+              </div>
+            )}
+
+            {duplicateQuizId && (
+              <div className="mb-5 border border-rule bg-plate">
+                <div className="border-b border-rule px-4 py-2">
+                  <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-hazard">
+                    DUPLICATE DETECTED
+                  </p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="font-terminal text-xs uppercase tracking-wide text-ink mb-1">
+                    THIS PDF WAS ALREADY UPLOADED
+                    {duplicateDate ? ` ON ${duplicateDate.toUpperCase()}` : ""}.
+                  </p>
+                  <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mb-4">
+                    TAKE THE EXISTING QUIZ OR GENERATE A FRESH SET OF QUESTIONS.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/quiz/${duplicateQuizId}`)}
+                      className="font-terminal text-[0.65rem] uppercase tracking-widest bg-hazard text-white px-4 py-2.5 border border-hazard hover:bg-paper hover:text-hazard transition-colors"
+                    >
+                      [ TAKE EXISTING QUIZ ]
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleSubmit(e as unknown as React.FormEvent, true)}
+                      className="font-terminal text-[0.65rem] uppercase tracking-widest border border-rule text-ink px-4 py-2.5 hover:border-hazard hover:text-hazard transition-colors"
+                    >
+                      [ GENERATE NEW QUESTIONS ]
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -256,12 +290,17 @@ export default function UploadPage() {
                   className="w-full font-terminal text-[0.75rem] uppercase tracking-widest py-4 border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-hazard text-white border-hazard hover:bg-paper hover:text-hazard"
                 >
                   {loading ? (
-                    <span className="flex items-center justify-center gap-3">
-                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      [ GENERATING QUIZ... PLEASE WAIT ]
+                    <span className="flex flex-col items-center gap-1.5">
+                      <span className="flex items-center gap-3">
+                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        [ GENERATING QUIZ... ]
+                      </span>
+                      <span className="font-terminal text-[0.55rem] uppercase tracking-widest opacity-70">
+                        EXTRACTING TEXT · CALLING AI · THIS TAKES 10–30 SECONDS
+                      </span>
                     </span>
                   ) : (
                     "[ GENERATE QUIZ → ]"

@@ -5,6 +5,7 @@ export interface IPDF extends Document {
   guestIp: string | null;
   filename: string;
   fileSize: number;
+  contentHash: string;
   rawText: string;
   truncatedText: string;
   wordCount: number;
@@ -19,6 +20,7 @@ const PDFSchema = new Schema<IPDF>({
   guestIp: { type: String, default: null },
   filename: { type: String, required: true },
   fileSize: { type: Number, required: true },
+  contentHash: { type: String, required: true },
   rawText: { type: String, required: true },
   truncatedText: { type: String, required: true },
   wordCount: { type: Number, required: true },
@@ -31,6 +33,8 @@ const PDFSchema = new Schema<IPDF>({
     default: "pending",
   },
 });
+
+PDFSchema.index({ userId: 1, contentHash: 1 });
 
 const PDF: Model<IPDF> =
   mongoose.models.PDF || mongoose.model<IPDF>("PDF", PDFSchema);
