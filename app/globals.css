@@ -1,26 +1,171 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+   INDUSTRIAL DESIGN TOKENS
+   Swiss Industrial Print (light) ↔ Tactical Telemetry (dark)
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:           #F4F4F0;
+  --fg:           #050505;
+  --fg-muted:     #555555;
+  --accent:       #E61919;
+  --border:       #050505;
+  --border-faint: #CCCCCC;
+  --surface:      #EAE8E3;
+  --surface-alt:  #DDDBD6;
 }
 
+[data-theme="dark"] {
+  --bg:           #0A0A0A;
+  --fg:           #EAEAEA;
+  --fg-muted:     #777777;
+  --accent:       #E61919;
+  --border:       #2A2A2A;
+  --border-faint: #1C1C1C;
+  --surface:      #111111;
+  --surface-alt:  #161616;
+}
+
+/* Map to Tailwind utility classes */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper:      var(--bg);
+  --color-ink:        var(--fg);
+  --color-ink-muted:  var(--fg-muted);
+  --color-hazard:     var(--accent);
+  --color-plate:      var(--surface);
+  --color-plate-alt:  var(--surface-alt);
+  --color-rule:       var(--border);
+  --color-rule-faint: var(--border-faint);
+
+  --font-sans:     var(--font-geist-sans);
+  --font-display:  var(--font-archivo);
+  --font-terminal: var(--font-jetbrains);
+  --font-mono:     var(--font-jetbrains);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL INDUSTRIAL RESETS
+   ═══════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALOG GRAIN OVERLAY  (both modes)
+   ═══════════════════════════════════════════════════════════════ */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CRT SCANLINES  (dark mode only)
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INDUSTRIAL UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════ */
+
+.ind-rule {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.ind-rule-accent {
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* Monospace data label — uppercase, tracked, small */
+.mono-label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* Dark mode: phosphor glow on hazard red */
+[data-theme="dark"] .hazard-glow {
+  text-shadow: 0 0 14px rgba(230, 25, 25, 0.55);
+}
+
+/* Dark mode: terminal green status dot */
+.status-ok {
+  color: #4AF626;
+}
+
+[data-theme="dark"] .status-ok {
+  text-shadow: 0 0 8px rgba(74, 246, 38, 0.6);
+}
+
+/* Transition on surfaces for theme switch */
+.ind-surface {
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+/* Input resets */
+input, textarea, select {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--fg-muted);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }

@@ -1,102 +1,197 @@
-import Image from "next/image";
+import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import Navbar from "@/components/shared/Navbar";
 
-export default function Home() {
+export default async function HomePage() {
+  const session = await auth();
+  if (session?.user) redirect("/dashboard");
+
+  const features = [
+    {
+      id: "01",
+      code: "INGEST",
+      title: "UPLOAD ANY PDF",
+      desc: "Textbooks, notes, research papers — content is extracted, chunked, and indexed for generation.",
+    },
+    {
+      id: "02",
+      code: "GENERATE",
+      title: "AI QUESTIONS",
+      desc: "Groq's Llama 3.3 70B produces MCQ, true/false, and fill-in-the-blank questions from your material.",
+    },
+    {
+      id: "03",
+      code: "REVIEW",
+      title: "SPACED REPETITION",
+      desc: "SM-2 scheduling surfaces weak questions at optimal intervals. Nothing falls through.",
+    },
+    {
+      id: "04",
+      code: "TRACK",
+      title: "PROGRESS TELEMETRY",
+      desc: "Streaks, topic weakness maps, score history, and activity heatmaps in a single dashboard.",
+    },
+  ];
+
+  const rows = [
+    ["PDF UPLOADS",         "1 EVER",   "3 / DAY"],
+    ["GENERATE QUIZZES",    "✓",        "✓"],
+    ["VIEW RESULTS",        "✓",        "✓"],
+    ["PROGRESS DASHBOARD",  "—",        "✓"],
+    ["SPACED REPETITION",   "—",        "✓"],
+    ["QUIZ HISTORY",        "—",        "✓"],
+    ["PAUSE AND RESUME",    "—",        "✓"],
+    ["EXPORT PROGRESS",     "—",        "✓"],
+  ];
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-paper text-ink ind-surface">
+      <Navbar />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* ── HERO ──────────────────────────────────────────────── */}
+      <section className="border-b border-rule">
+        <div className="max-w-7xl mx-auto px-6">
+
+
+          <div className="py-16 lg:py-24">
+            {/* Macro heading */}
+            <h1
+              className="font-display uppercase leading-none tracking-tight text-ink mb-0"
+              style={{ fontSize: "clamp(3.5rem, 9vw, 9rem)", letterSpacing: "-0.03em" }}
+            >
+              TURN ANY PDF
+            </h1>
+            <h1
+              className="font-display uppercase leading-none tracking-tight text-hazard hazard-glow mb-6"
+              style={{ fontSize: "clamp(3.5rem, 9vw, 9rem)", letterSpacing: "-0.03em" }}
+            >
+              INTO QUIZZES.
+            </h1>
+
+            {/* Accent rule */}
+            <div className="ind-rule-accent mb-8 max-w-2xl" />
+
+            <p className="font-terminal text-sm text-ink-muted max-w-xl mb-10 leading-relaxed tracking-wide uppercase">
+              Upload a document. Get AI-generated questions in seconds.
+              Track performance with spaced repetition and actually
+              remember what you study.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex items-center gap-0 flex-wrap">
+              <Link
+                href="/upload"
+                className="font-terminal text-sm uppercase tracking-widest bg-hazard text-white px-8 py-4 border-2 border-hazard hover:bg-paper hover:text-hazard font-bold transition-colors"
+              >
+                [ TRY FREE — NO SIGN UP ]
+              </Link>
+              <Link
+                href="/login"
+                className="font-terminal text-sm uppercase tracking-widest bg-paper text-ink px-8 py-4 border-2 border-rule hover:border-hazard hover:text-hazard transition-colors"
+              >
+                [ SIGN IN ]
+              </Link>
+            </div>
+
+            <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mt-4">
+              NO CREDIT CARD REQUIRED · FREE FOREVER FOR BASIC USE
+            </p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </section>
+
+      {/* ── COMPARISON TABLE ──────────────────────────────────── */}
+      <section className="border-b border-rule">
+        <div className="max-w-7xl mx-auto">
+
+          {/* Section header */}
+          <div className="grid grid-cols-3 border-b border-rule">
+            <div className="px-6 py-3 border-r border-rule">
+              <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">FEATURE</span>
+            </div>
+            <div className="px-6 py-3 text-center border-r border-rule">
+              <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">GUEST</span>
+            </div>
+            <div className="px-6 py-3 text-center bg-plate">
+              <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-hazard">SIGNED IN</span>
+            </div>
+          </div>
+
+          {rows.map(([feat, guest, auth], i) => (
+            <div
+              key={feat}
+              className={`grid grid-cols-3 border-b border-rule-faint ${
+                i === rows.length - 1 ? "" : ""
+              }`}
+            >
+              <div className="px-6 py-3 border-r border-rule-faint">
+                <span className="font-terminal text-xs uppercase tracking-wide text-ink">{feat}</span>
+              </div>
+              <div className="px-6 py-3 text-center border-r border-rule-faint">
+                <span className="font-terminal text-xs text-ink-muted">{guest}</span>
+              </div>
+              <div className="px-6 py-3 text-center bg-plate">
+                <span className={`font-terminal text-xs font-bold ${auth === "—" ? "text-ink-muted" : "text-hazard"}`}>
+                  {auth}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURES GRID ─────────────────────────────────────── */}
+      <section className="border-b border-rule">
+        <div className="max-w-7xl mx-auto">
+
+          {/* Section label */}
+          <div className="px-6 py-3 border-b border-rule">
+            <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">
+              [ SYSTEM CAPABILITIES ]
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((f, i) => (
+              <div
+                key={f.id}
+                className={`p-6 bg-plate ind-surface border-r border-rule-faint ${
+                  i === features.length - 1 ? "border-r-0" : ""
+                }`}
+              >
+                <div className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mb-4">
+                  {f.id} / {f.code}
+                </div>
+                <div className="ind-rule-accent mb-4" />
+                <h3
+                  className="font-display uppercase text-ink leading-tight mb-3"
+                  style={{ fontSize: "clamp(1.1rem, 2vw, 1.4rem)", letterSpacing: "-0.02em" }}
+                >
+                  {f.title}
+                </h3>
+                <p className="font-terminal text-xs text-ink-muted leading-relaxed tracking-wide uppercase">
+                  {f.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ────────────────────────────────────────────── */}
+      <footer className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-t border-rule-faint">
+        <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">
+          MADE BY SAMIUL · © 2026 QUIZORA
+        </span>
+        <div className="flex gap-6">
+          <Link href="/terms" className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted hover:text-hazard transition-colors">
+            TERMS
+          </Link>
+          <Link href="/privacy" className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted hover:text-hazard transition-colors">
+            PRIVACY
+          </Link>
+        </div>
       </footer>
     </div>
   );
