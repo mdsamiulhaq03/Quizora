@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import type { Question } from "@/lib/types";
@@ -22,7 +22,7 @@ const containerVariants = {
 
 const optionVariants = {
   hidden: { opacity: 0, x: -10 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, x: 0, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function QuestionCard({
@@ -44,7 +44,7 @@ export default function QuestionCard({
         initial={{ opacity: 0, x: direction * 24 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: direction * -24 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
         className="bg-plate border border-rule ind-surface overflow-hidden"
       >
         {/* Header bar */}
@@ -89,7 +89,7 @@ export default function QuestionCard({
 
         <div className="ind-rule" />
 
-        {/* Options — MCQ */}
+        {/* Options â€” MCQ */}
         {question.type === "mcq" && question.options && (
           <motion.div
             className="divide-y divide-rule-faint"
@@ -133,7 +133,7 @@ export default function QuestionCard({
           </motion.div>
         )}
 
-        {/* Options — True/False */}
+        {/* Options â€” True/False */}
         {question.type === "truefalse" && (
           <motion.div
             className="grid grid-cols-2 divide-x divide-rule-faint"
@@ -197,7 +197,7 @@ export default function QuestionCard({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
               className={`border-t border-rule overflow-hidden ${
                 isCorrect ? "bg-green-950" : "bg-red-950/40"
               }`}
@@ -213,7 +213,7 @@ export default function QuestionCard({
                 >
                   {isCorrect
                     ? "[ CORRECT ]"
-                    : `[ INCORRECT — ANSWER: ${question.correctAnswer} ]`}
+                    : `[ INCORRECT â€” ANSWER: ${question.correctAnswer} ]`}
                 </motion.p>
                 {question.explanation && (
                   <motion.p
@@ -233,3 +233,4 @@ export default function QuestionCard({
     </AnimatePresence>
   );
 }
+

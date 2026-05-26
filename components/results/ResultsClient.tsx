@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -49,7 +49,7 @@ function TopicBar({ topic, correct, total }: TopicEntry) {
       <div className="flex justify-between mb-1.5">
         <span className="font-terminal text-xs uppercase tracking-wide text-ink">{topic}</span>
         <span className="font-terminal text-[0.65rem] uppercase tracking-widest text-ink-muted tabular-nums">
-          {correct}/{total} · {p}%
+          {correct}/{total} Â· {p}%
         </span>
       </div>
       <div className="w-full bg-plate-alt h-1 overflow-hidden">
@@ -58,7 +58,7 @@ function TopicBar({ topic, correct, total }: TopicEntry) {
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
           style={{ backgroundColor: barColor, width: `${p}%`, transformOrigin: "left" }}
         />
       </div>
@@ -73,7 +73,7 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 const wrongStagger = {
@@ -83,7 +83,7 @@ const wrongStagger = {
 
 const wrongItem = {
   hidden: { opacity: 0, x: -8 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function ResultsClient({
@@ -298,3 +298,4 @@ export default function ResultsClient({
     </motion.div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 
@@ -9,7 +9,7 @@ const stagger = {
 
 const row = {
   hidden: { opacity: 0, x: -10 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function AnimatedTable({ rows }: { rows: string[][] }) {
@@ -33,7 +33,7 @@ export default function AnimatedTable({ rows }: { rows: string[][] }) {
             <span className="font-terminal text-xs text-ink-muted">{guest}</span>
           </div>
           <div className="px-6 py-3 text-center bg-plate">
-            <span className={`font-terminal text-xs font-bold ${auth === "—" ? "text-ink-muted" : "text-hazard"}`}>
+            <span className={`font-terminal text-xs font-bold ${auth === "â€”" ? "text-ink-muted" : "text-hazard"}`}>
               {auth}
             </span>
           </div>
@@ -42,3 +42,4 @@ export default function AnimatedTable({ rows }: { rows: string[][] }) {
     </motion.div>
   );
 }
+

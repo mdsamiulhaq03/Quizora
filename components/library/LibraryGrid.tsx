@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +22,7 @@ const stagger = {
 
 const card = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function LibraryGrid({ pdfs: initialPdfs }: { pdfs: PDF[] }) {
@@ -64,7 +64,7 @@ export default function LibraryGrid({ pdfs: initialPdfs }: { pdfs: PDF[] }) {
         </p>
         <motion.div whileTap={{ scale: 0.97 }}>
           <Link href="/upload" className="font-terminal text-[0.65rem] uppercase tracking-widest text-hazard hover:underline">
-            [ UPLOAD YOUR FIRST PDF → ]
+            [ UPLOAD YOUR FIRST PDF â†’ ]
           </Link>
         </motion.div>
       </motion.div>
@@ -106,7 +106,7 @@ export default function LibraryGrid({ pdfs: initialPdfs }: { pdfs: PDF[] }) {
               {pdf.filename}
             </h3>
             <p className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted">
-              {pdf.wordCount.toLocaleString()} WORDS ·{" "}
+              {pdf.wordCount.toLocaleString()} WORDS Â·{" "}
               {new Date(pdf.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}
             </p>
 
@@ -126,7 +126,7 @@ export default function LibraryGrid({ pdfs: initialPdfs }: { pdfs: PDF[] }) {
                   href={`/upload?pdfId=${pdf._id}`}
                   className="font-terminal text-[0.65rem] uppercase tracking-widest border border-rule text-ink w-full py-2 text-center block hover:border-hazard hover:text-hazard transition-colors"
                 >
-                  [ NEW QUIZ → ]
+                  [ NEW QUIZ â†’ ]
                 </Link>
               </motion.div>
 
@@ -176,3 +176,4 @@ export default function LibraryGrid({ pdfs: initialPdfs }: { pdfs: PDF[] }) {
     </motion.div>
   );
 }
+

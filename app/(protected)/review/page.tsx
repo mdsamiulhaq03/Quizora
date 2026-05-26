@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -95,7 +95,7 @@ export default function ReviewPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
           className="border border-rule bg-plate px-8 py-8 text-center max-w-sm"
         >
           <motion.div
@@ -127,7 +127,7 @@ export default function ReviewPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
           className="border border-rule bg-plate px-8 py-8 text-center max-w-sm"
         >
           <motion.p
@@ -207,7 +207,7 @@ export default function ReviewPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
             >
               <motion.button
                 onClick={handleNext}
@@ -215,7 +215,7 @@ export default function ReviewPage() {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className="w-full font-terminal text-[0.75rem] uppercase tracking-widest bg-hazard text-white py-4 border-2 border-hazard hover:bg-paper hover:text-hazard transition-colors"
               >
-                {index < questions.length - 1 ? "[ CONTINUE → ]" : "[ FINISH REVIEW → ]"}
+                {index < questions.length - 1 ? "[ CONTINUE â†’ ]" : "[ FINISH REVIEW â†’ ]"}
               </motion.button>
             </motion.div>
           )}
@@ -224,3 +224,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+

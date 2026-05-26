@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -12,7 +12,7 @@ const stagger = {
 
 const item = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function RegisterPage() {
@@ -22,12 +22,12 @@ export default function RegisterPage() {
         className="w-full max-w-sm"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
       >
         <div className="border border-rule">
           <div className="border-b border-rule px-5 py-2 flex items-center justify-between bg-plate">
             <Link href="/" className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted hover:text-hazard transition-colors">
-              ← BACK
+              â† BACK
             </Link>
             <span className="font-terminal text-[0.6rem] uppercase tracking-widest text-hazard">
               NEW OPERATOR
@@ -117,3 +117,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

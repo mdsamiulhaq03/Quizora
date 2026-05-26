@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -10,7 +10,7 @@ const stagger = {
 
 const item = {
   hidden: { opacity: 0, y: 22 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function AnimatedHero() {
@@ -50,7 +50,7 @@ export default function AnimatedHero() {
             href="/upload"
             className="font-terminal text-sm uppercase tracking-widest bg-hazard text-white px-8 py-4 border-2 border-hazard hover:bg-paper hover:text-hazard font-bold transition-colors inline-block"
           >
-            [ TRY FREE — NO SIGN UP ]
+            [ TRY FREE â€” NO SIGN UP ]
           </Link>
         </motion.div>
         <motion.div whileTap={{ scale: 0.97 }}>
@@ -67,8 +67,9 @@ export default function AnimatedHero() {
         variants={item}
         className="font-terminal text-[0.6rem] uppercase tracking-widest text-ink-muted mt-4"
       >
-        NO CREDIT CARD REQUIRED · FREE FOREVER FOR BASIC USE
+        NO CREDIT CARD REQUIRED Â· FREE FOREVER FOR BASIC USE
       </motion.p>
     </motion.div>
   );
 }
+

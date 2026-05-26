@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -22,7 +22,7 @@ const stagger = {
 
 const panel = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
 export default function ProfileClient({ name, email, image, memberSince, streak, freezeAvailable, children }: Props) {
@@ -135,3 +135,4 @@ export default function ProfileClient({ name, email, image, memberSince, streak,
     </motion.div>
   );
 }
+
