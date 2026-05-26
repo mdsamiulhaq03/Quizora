@@ -4,6 +4,15 @@ declare global {
   var _mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
 }
 
+function registerModels() {
+  require("./models/User");
+  require("./models/PDF");
+  require("./models/Quiz");
+  require("./models/Attempt");
+  require("./models/WeakQuestion");
+  require("./models/QuizSession");
+}
+
 async function dbConnect(): Promise<typeof mongoose> {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) throw new Error("MONGODB_URI environment variable is not defined");
@@ -14,7 +23,10 @@ async function dbConnect(): Promise<typeof mongoose> {
 
   const cached = global._mongoose;
 
-  if (cached.conn) return cached.conn;
+  if (cached.conn) {
+    registerModels();
+    return cached.conn;
+  }
 
   if (!cached.promise) {
     cached.promise = mongoose
@@ -29,6 +41,7 @@ async function dbConnect(): Promise<typeof mongoose> {
     throw e;
   }
 
+  registerModels();
   return cached.conn;
 }
 
